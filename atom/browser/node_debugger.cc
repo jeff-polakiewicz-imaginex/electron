@@ -17,10 +17,15 @@
 
 #include "atom/common/node_includes.h"
 
+// DebugOptionsParser is defined in node_options.cc
+// We export it from there and then just declare it here for use.
 namespace node {
 namespace options_parser {
-class DebugOptionsParser;
-}
+class DebugOptionsParser : public OptionsParser<DebugOptions> {
+ public:
+  DebugOptionsParser();
+};
+}  // namespace options_parser
 }  // namespace node
 
 namespace atom {
@@ -44,7 +49,7 @@ void NodeDebugger::Start() {
   }
 
   node::DebugOptions options;
-  node::options_parser::OptionsParser<node::DebugOptions> options_parser;
+  node::options_parser::DebugOptionsParser options_parser;
   std::vector<std::string> exec_args;
   std::vector<std::string> v8_args;
   std::vector<std::string> errors;
@@ -56,13 +61,6 @@ void NodeDebugger::Start() {
     // TODO(jeremy): what's the appropriate behaviour here?
     LOG(ERROR) << "Error parsing node options: "
                << base::JoinString(errors, " ");
-  }
-
-  // Set process._debugWaitConnect if --inspect-brk was specified to stop
-  // the debugger on the first line
-  if (options.wait_for_connect()) {
-    mate::Dictionary process(env_->isolate(), env_->process_object());
-    process.Set("_breakFirstLine", true);
   }
 
   const char* path = "";
